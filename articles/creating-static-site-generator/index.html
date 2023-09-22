@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/index.css" type="text/css" />
+    <link rel="alternate" href="/atom.xml" type="application/atom+xml" />
+      <meta name="description" content="Rich content, native external links, optimized images, sitemap and Atom feed, with 300 lines of Python code." />
+      <link rel="canonical" href="https://mateusznowak.dev/articles/creating-static-site-generator/" />
+    <title>Creating static site generator &mdash; Mateusz Nowak's personal website</title>
+    <script defer data-domain="mateusznowak.dev" src="https://plausible.io/js/script.js"></script>
+  </head>
+  <body>
+    <header>  <p>
+    <a class="back" href="/">To the Home Page</a>
+  </p>
+  <h1>Creating static site generator</h1>
+</header>
+    <main><section>
+    <p class="large">Back in 2022, I was asked for some help in setting up Jekyll site generator, which ended in creating quick alternative in Python. It's time to reuse it for my website</p>
+    <p>Published on Mar 10, 2024</p>
+</section>
+  <section><p>Updating this very website has become cumbersome. Every time something is
+changed, I need to generate a new set of images, update links at the bottom of
+the page, check if the sitemap is correct, and perform other tasks. Thankfully,
+I have found my old code and decided to retrofit it.</p>
+<h2>Not just a plain text</h2>
+<p>Long gone are the days when webpages were a collection of simple pages. My
+website has the index page, the 404 page, projects, articles, external links, an
+XML sitemap, and now there's also an Atom feed you can use with your favorite
+news reader app. Projects and articles have banner images and short descriptions
+shown on related pages.</p>
+<p>Jekyll automatically finds <code>.md</code> files and uses a <em>front matter</em> section to
+store metadata. I've decided to explicitly list all resources in the separate
+configuration file. See the following code excerpt.</p>
+<pre><code class="language-yml">name: Mateusz Nowak's personal website
+author: Mateusz Nowak
+url: https://mateusznowak.dev
+pages:
+  - url: /articles/manufacturing-pcb-at-home/
+    title: Manufacturing PCBs at home
+    description: ...
+    banner_id: article-manufacturing-pcb-at-home
+    type: article
+    date: 2024-02-04T00:00:00+01:00
+    sitemap: true
+  - ...
+</code></pre>
+<p>Each resource is expected to have its own directory, with at least one file
+named <code>index.md</code>, but it's not mandatory. If the file is missing, the resource
+is considered external, and it can still be rendered properly.</p>
+<p>It doesn't mean a front matter is not used at all. There are some elements that
+can't be represented as plain Markdown, such as the action button or highlights
+of a project. That's where front matter really shines:</p>
+<pre><code class="language-yml">github_url: https://github.com/mateusznowakdev/solar
+features:
+  - title: Live parameters
+    description: ...
+    banner_id: live-parameters
+    banner_gravity: start
+  - ...
+stack:
+  - Django REST
+  - PostgreSQL
+</code></pre>
+<p>In both cases, the YAML input is converted to Python dataclasses, which provides
+basic validation. It's not possible to add properties that would go unused.</p>
+<h2>Text to HTML</h2>
+<p>There are multiple Markdown-to-HTML generators available for Python, but the
+best I've found is <a href="https://mistune.lepture.com/" rel="noopener" target="_blank">Mistune</a>. It's fast, and it
+fully supports <a href="https://prettier.io/" rel="noopener" target="_blank">Prettier</a>'s code style. Unfortunately, it
+uses string concatenation to create output HTML, so you have to copy the entire
+implementation of a function to introduce your changes.</p>
+<p>The default output can be used as-is, but there were some SEO and performance
+changes I wanted to introduce. Based on my knowledge, links should have <code>rel</code>
+and <code>target</code> attributes, and images should be loaded lazily and scaled down to
+save bandwidth.</p>
+<p>There are some other operations that may be possible with Mistune, including
+extracting the list of images, but for simplicity’s sake, I've decided to use
+regular expressions in this case.</p>
+<h2>Images to smaller images</h2>
+<p>Google recommends using WEBP images, but usually, the screenshots are created in
+PNG format, while photos are JPG files. I can use GIMP or ImageMagick to convert
+images manually, but I would rather automate it. If there is a JPG or PNG file
+in the input directory, and the WEBP variant is used, then the additional
+conversion should be performed.</p>
+<p>For image scaling in Python, you can either use the
+<a href="https://pypi.org/project/pillow/" rel="noopener" target="_blank">Pillow library</a>, or ImageMagick bindings such
+as <a href="https://pypi.org/project/Wand/" rel="noopener" target="_blank">Wand</a>. Surprisingly, Pillow is faster and
+requires you to add less code. It does not have the <code>gravity</code> option of
+ImageMagick, but that can be implemented easily.</p>
+<h2>HTML to... HTML</h2>
+<p>The design of my website is simple enough, so splitting it into multiple smaller
+templates was an easy task. There are also XML templates for the sitemap and
+Atom feed. I'm using the
+<a href="https://pypi.org/project/Jinja2/" rel="noopener" target="_blank">Jinja template engine</a>, which is similar to
+Django's engine (oh, I wish I wouldn't have to do templates for living in
+2024...) but more forgiving.</p>
+<h2>And that's it!</h2>
+<p>With only 300 lines of Python code (<em>and, um, some external libraries,
+templates, and other stuff</em>), it is possible to create a fully functional
+website that looks great and is easy to extend and update!</p>
+<p>I've
+<a href="https://github.com/mateusznowakdev/static-site-generator/" rel="noopener" target="_blank">uploaded the code to GitHub</a>,
+but IMO it's too simple to be called a standalone project.</p>
+</section>
+<section>
+  <p class="large">Check out the following links:</p>
+  <ul class="gallery gallery-short">
+  <li>
+    <h3>
+      <a href="/articles/adjusting-focus-gemius-qcam-6000/" rel="" target="">
+        Adjusting focus of Gemius QCam 6000
+      </a>
+    </h3>
+    <p>A simple trick to fix blurry camera and improve Slack and Teams calls and local video recording.</p>
+    <a href="/articles/adjusting-focus-gemius-qcam-6000/" rel="" target="">
+      <img alt="Adjusting focus of Gemius QCam 6000" loading="lazy" src="/images/article-adjusting-focus-gemius-qcam-6000.webp" />
+    </a>
+  </li>
+  <li>
+    <h3>
+      <a href="/articles/manufacturing-pcb-at-home/" rel="" target="">
+        Manufacturing PCBs at home
+      </a>
+    </h3>
+    <p>Tips on setting board parameters in KiCAD, milling and drilling PCBs, and things that you should avoid.</p>
+    <a href="/articles/manufacturing-pcb-at-home/" rel="" target="">
+      <img alt="Manufacturing PCBs at home" loading="lazy" src="/images/article-manufacturing-pcb-at-home.webp" />
+    </a>
+  </li>
+  <li>
+    <h3>
+      <a href="/projects/automatic-door-controller/" rel="" target="">
+        Automatic door controller
+      </a>
+    </h3>
+    <p>Day and night schedules, advanced logging and user-friendly menus. Custom PCB with modular design. Running on CircuitPython.</p>
+    <a href="/projects/automatic-door-controller/" rel="" target="">
+      <img alt="Automatic door controller" loading="lazy" src="/images/project-automatic-door-controller.webp" />
+    </a>
+  </li>
+  </ul>
+</section></main>
+    <footer>  <p>
+    <a class="back" href="/">To the Home Page</a>
+  </p>
+<p>
+  &copy; 0x7E8 Mateusz Nowak. Copying not allowed.<br />
+  Featuring the
+  <a href="https://etceteratype.co/epilogue" target="_blank" rel="noopener">Epilogue font</a>
+  and
+  <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide icons</a>.
+</p>
+<a href="#" title="Scroll to the top">
+  <img class="up" alt="Scroll to the top" src="/images/up.webp" />
+</a></footer>
+  </body>
+</html>

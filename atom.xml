@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Mateusz Nowak's personal website</title>
+  <link href="https://mateusznowak.dev/atom.xml" rel="self" />
+  <id>https://mateusznowak.dev/</id>
+  <updated>2024-03-23T20:37:50.445709+00:00</updated>
+  <author>
+    <name>Mateusz Nowak</name>
+  </author>
+      <entry>
+        <title>Adjusting focus of Gemius QCam 6000</title>
+        <link href="https://mateusznowak.dev/articles/adjusting-focus-gemius-qcam-6000/" />
+        <id>https://mateusznowak.dev/articles/adjusting-focus-gemius-qcam-6000/</id>
+        <updated>2024-03-23T00:00:00+01:00</updated>
+        <summary>I've "hacked" this little webcam to be more useful for local recording, and to improve image quality for video calls when I work from home</summary>
+      </entry>
+      <entry>
+        <title>Creating static site generator</title>
+        <link href="https://mateusznowak.dev/articles/creating-static-site-generator/" />
+        <id>https://mateusznowak.dev/articles/creating-static-site-generator/</id>
+        <updated>2024-03-10T00:00:00+01:00</updated>
+        <summary>Back in 2022, I was asked for some help in setting up Jekyll site generator, which ended in creating quick alternative in Python. It's time to reuse it for my website</summary>
+      </entry>
+      <entry>
+        <title>Manufacturing PCBs at home</title>
+        <link href="https://mateusznowak.dev/articles/manufacturing-pcb-at-home/" />
+        <id>https://mateusznowak.dev/articles/manufacturing-pcb-at-home/</id>
+        <updated>2024-02-04T00:00:00+01:00</updated>
+        <summary>I have bought a CNC router to iterate on electronic designs even faster. Here's what hardware and software I use, and how to mill, drill and cut the board at home</summary>
+      </entry>
+      <entry>
+        <title>Automatic door controller</title>
+        <link href="https://mateusznowak.dev/projects/automatic-door-controller/" />
+        <id>https://mateusznowak.dev/projects/automatic-door-controller/</id>
+        <updated>2024-01-06T00:00:00+01:00</updated>
+        <summary>A custom device used to control motor drivers according to the schedule, with many configurable parameters, using the Raspberry Pi Pico development board</summary>
+      </entry>
+      <entry>
+        <title>Solar inverter datalogger</title>
+        <link href="https://mateusznowak.dev/projects/solar-inverter-datalogger/" />
+        <id>https://mateusznowak.dev/projects/solar-inverter-datalogger/</id>
+        <updated>2023-07-29T00:00:00+02:00</updated>
+        <summary>The alternative datalogger software for one of the commercially available solar inverters, based on reverse engineering of its Modbus communication protocol</summary>
+      </entry>
+</feed>

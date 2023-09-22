@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/index.css" type="text/css" />
+    <link rel="alternate" href="/atom.xml" type="application/atom+xml" />
+      <meta name="description" content="Day and night schedules, advanced logging and user-friendly menus. Custom PCB with modular design. Running on CircuitPython." />
+      <link rel="canonical" href="https://mateusznowak.dev/projects/automatic-door-controller/" />
+    <title>Automatic door controller &mdash; Mateusz Nowak's personal website</title>
+    <script defer data-domain="mateusznowak.dev" src="https://plausible.io/js/script.js"></script>
+  </head>
+  <body>
+    <header>  <p>
+    <a class="back" href="/">To the Home Page</a>
+  </p>
+  <h1>Automatic door controller</h1>
+</header>
+    <main><section>
+    <p class="large">A custom device used to control motor drivers according to the schedule, with many configurable parameters, using the Raspberry Pi Pico development board</p>
+    <p>Published on Jan 6, 2024</p>
+</section>
+<section>
+  <p class="buttons">
+    <a class="button" href="https://github.com/mateusznowakdev/door-controller" target="_blank" rel="noopener">
+      Code on GitHub
+    </a>
+  </p>
+</section><section class="feature">
+  <div>
+    <h2>Modular design</h2>
+    <p class="large">Assemble the device without extra knowledge, for less than &euro;50 (as of 2024, sigh)</p>
+    <p>Based on off-the-shelf electronic components, and simple carrier and button boards designed by myself</p>
+  </div>
+  <div>
+    <a href="modular-design.webp">
+      <img
+        alt="Modular design"
+        loading="lazy"
+        src="modular-design-w360.webp"
+        srcset="modular-design-w360.webp, modular-design-w720.webp 2x"
+      />
+    </a>
+  </div>
+</section>
+<section class="feature">
+  <div>
+    <h2>User-friendly menus</h2>
+    <p class="large">Set parameters, invoke actions and check the event logs conveniently</p>
+    <p>Simple user interface based on easy to navigate menus, using the character LCD and just three buttons</p>
+  </div>
+  <div>
+    <a href="user-friendly-menus.webp">
+      <img
+        alt="User-friendly menus"
+        loading="lazy"
+        src="user-friendly-menus-w360.webp"
+        srcset="user-friendly-menus-w360.webp, user-friendly-menus-w720.webp 2x"
+      />
+    </a>
+  </div>
+</section>
+<section class="feature">
+  <div>
+    <h2>Day and night schedules</h2>
+    <p class="large">Adjust the time and duration of the opening and closing actions independently</p>
+    <p>The door can also be opened or closed manually at any time. Custom code is run for either action</p>
+  </div>
+  <div>
+    <a href="day-and-night-schedules.webp">
+      <img
+        alt="Day and night schedules"
+        loading="lazy"
+        src="day-and-night-schedules-w360.webp"
+        srcset="day-and-night-schedules-w360.webp, day-and-night-schedules-w720.webp 2x"
+      />
+    </a>
+  </div>
+</section>
+<section class="feature">
+  <div>
+    <h2>Partial operation mode</h2>
+    <p class="large">Split the opening or closing actions into evenly spaced, byte-sized operations</p>
+    <p>According to the starting and ending times and the defined number of operations per day</p>
+  </div>
+  <div>
+    <a href="partial-operation-mode.webp">
+      <img
+        alt="Partial operation mode"
+        loading="lazy"
+        src="partial-operation-mode-w360.webp"
+        srcset="partial-operation-mode-w360.webp, partial-operation-mode-w720.webp 2x"
+      />
+    </a>
+  </div>
+</section>
+  <section><h2>Technical details</h2>
+<p>It was supposed to be a quick project when I started in early 2023, but it took
+me an entire year to finish it. There are many things that can go wrong when it
+comes to electronic circuit design if you are not experienced. I have run
+through multiple prototypes and bought a CNC machine to make things less
+annoying, and documented my experience in a
+<a href="/articles/manufacturing-pcb-at-home/">separate article</a>. Let's focus on the
+<a href="https://circuitpython.org/" rel="noopener" target="_blank">Adafruit's CircuitPython runtime</a> itself.</p>
+<h3>Asynchronous operation</h3>
+<p>There are two main processes running, the scheduler and the menu, that need to
+be run in parallel. CircuitPython does not support threads, interrupts or
+concurrency by default, but a
+<a href="https://github.com/adafruit/Adafruit_CircuitPython_asyncio" rel="noopener" target="_blank">first-party <code>asyncio</code> substitute</a>
+is available.</p>
+<p>However, some actions are performed synchronously, for example the opening and
+closing itself. There is no guarantee that <code>await asyncio.sleep(1.0)</code> will take
+exactly 1 second, while the blocking version, <code>time.sleep(1.0)</code>, will provide
+good enough results. Asynchronous tasks are performed on some menu screens as
+well.</p>
+<h3>User menu</h3>
+<p>Every menu screen inherits the <code>Menu</code> class, which represents the finite list of
+editable variables in &quot;navigation&quot; or &quot;edit&quot; cursor mode. Implementations have
+their own state and can change the behavior of every button or the displayed
+text. For example, the <code>IdleMenu</code> shows the current time and device status but
+has no visible cursor.</p>
+<p>The display I have picked for this project does not have built-in backlight
+control and can only show basic English or Japanese text and up to 8 custom
+symbols. When user presses the button, the character set is dynamically updated.
+The display's backlight can be controlled manually via simple transistor circuit
+and a PWM signal.</p>
+<p>CircuitPython can handle single buttons and key matrices via the built-in
+<code>keypad</code> module. It does not report for how long the buttons have been pressed,
+though. I have added this feature in order to reduce a number of keys.</p>
+<h3>Persistence</h3>
+<p>The AT24LC32 EEPROM chip is commonly found on cheap RTC + EEPROM modules and
+provides 4kB of non-volatile memory. There is no file system, so I had to roll
+out my own solution for storing settings and log entries.</p>
+<p>Each block of data is 8 bytes long and includes the checksum (basic XOR). If the
+read data is invalid, the settings are reset to the safe defaults. Up to 127 log
+entries are stored and rotated, with EOF marker updated after every write.</p>
+<h3>Reliability</h3>
+<p>CircuitPython has good hardware support and a wide array of additional
+libraries, but in reality, it is meant to be used for learning and prototyping.
+I have decided to take the risk and use it for my always-on device.</p>
+<p>RP2040 chip found in Raspberry Pi Pico has an internal watchdog timer that is
+used to reboot the board if the program does not &quot;feed&quot; it for a specified
+amount of time. Since the CircuitPython 8.1 (mid-2023), it is also possible to
+create a <code>safemode.py</code> file that defines the custom behavior after a crash when
+it is caused by something other than my code.</p>
+<p>One of the prototype boards had PWM issues caused by pin collisions. According
+to the
+<a href="https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf" rel="noopener" target="_blank">RP2040 documentation</a>,
+section <code>4.5.2. Programmer's Model</code>, there are eight 2-channel PWM slices. You
+can't reliably use pins 0 and 16 at the same time. The same goes for pins 1 and
+17, 8 and 18, and so on. I couldn't fix it in software, so I had to change the
+PCB layout.</p>
+<h3>Memory optimizations</h3>
+<p>The entire program is more than 1000 lines long, and it's difficult to keep
+everything in a single file. On the other hand, hardware modules depend on each
+other more than ever, and code splitting would result in an increased memory
+usage and cyclic import issues. I have created a few unit tests for partial
+actions, so I had to have at least two modules to make tests run in the CPython
+interpreter. The entire menu has been moved to a separate file as well.</p>
+<p>Furthermore, on-device bytecode generation greatly increases the startup time.
+Thankfully, there is a <code>mpy-cross</code> utility, used by Adafruit developers
+themselves, that can do this ahead of time to mitigate this.</p>
+<h3>Bill of materials</h3>
+<p>All components are THT (through-hole), not SMD (surface mounted).</p>
+<ul>
+<li>1x Raspberry Pi Pico</li>
+<li>1x DS3231 RTC + AT24LC32 EEPROM module</li>
+<li>1x HD44780 display module</li>
+<li>3x 12x12mm tactile switch</li>
+<li>1x 2N7000 N-MOS transistor</li>
+<li>1x 1kΩ potentiometer</li>
+<li>1x 10kΩ, 8x 470Ω, 1x 220Ω resistors</li>
+<li>2x 20pin, 1x 16pin, 1x 6pin, 2x 4pin socket headers,
+2.54mm pitch</li>
+<li>2x 4pin, 1x 2pin pin headers, 2.54mm pitch</li>
+<li>1x 2pin pin jumper, 2.54mm pitch</li>
+<li>1x 3pin terminal block, 5.08mm pitch</li>
+<li>3x M2.5x11mm spacer sleeve</li>
+<li>6x M2.5 screws</li>
+<li>Carrier and button boards</li>
+<li>Basic DIY tools</li>
+</ul>
+</section>
+<section>
+  <p class="large">Check out the following links:</p>
+  <ul class="gallery gallery-short">
+  <li>
+    <h3>
+      <a href="/articles/adjusting-focus-gemius-qcam-6000/" rel="" target="">
+        Adjusting focus of Gemius QCam 6000
+      </a>
+    </h3>
+    <p>A simple trick to fix blurry camera and improve Slack and Teams calls and local video recording.</p>
+    <a href="/articles/adjusting-focus-gemius-qcam-6000/" rel="" target="">
+      <img alt="Adjusting focus of Gemius QCam 6000" loading="lazy" src="/images/article-adjusting-focus-gemius-qcam-6000.webp" />
+    </a>
+  </li>
+  <li>
+    <h3>
+      <a href="/articles/creating-static-site-generator/" rel="" target="">
+        Creating static site generator
+      </a>
+    </h3>
+    <p>Rich content, native external links, optimized images, sitemap and Atom feed, with 300 lines of Python code.</p>
+    <a href="/articles/creating-static-site-generator/" rel="" target="">
+      <img alt="Creating static site generator" loading="lazy" src="/images/article-creating-static-site-generator.webp" />
+    </a>
+  </li>
+  <li>
+    <h3>
+      <a href="/articles/manufacturing-pcb-at-home/" rel="" target="">
+        Manufacturing PCBs at home
+      </a>
+    </h3>
+    <p>Tips on setting board parameters in KiCAD, milling and drilling PCBs, and things that you should avoid.</p>
+    <a href="/articles/manufacturing-pcb-at-home/" rel="" target="">
+      <img alt="Manufacturing PCBs at home" loading="lazy" src="/images/article-manufacturing-pcb-at-home.webp" />
+    </a>
+  </li>
+  </ul>
+</section></main>
+    <footer>  <p>
+    <a class="back" href="/">To the Home Page</a>
+  </p>
+<p>
+  &copy; 0x7E8 Mateusz Nowak. Copying not allowed.<br />
+  Featuring the
+  <a href="https://etceteratype.co/epilogue" target="_blank" rel="noopener">Epilogue font</a>
+  and
+  <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide icons</a>.
+</p>
+<a href="#" title="Scroll to the top">
+  <img class="up" alt="Scroll to the top" src="/images/up.webp" />
+</a></footer>
+  </body>
+</html>

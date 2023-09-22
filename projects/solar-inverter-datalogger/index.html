@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/index.css" type="text/css" />
+    <link rel="alternate" href="/atom.xml" type="application/atom+xml" />
+      <meta name="description" content="Complex charts, data aggregation and basic automation. Optimized for low-end Raspberry Pi variants. Powered by Django, React, MQTT." />
+      <link rel="canonical" href="https://mateusznowak.dev/projects/solar-inverter-datalogger/" />
+    <title>Solar inverter datalogger &mdash; Mateusz Nowak's personal website</title>
+    <script defer data-domain="mateusznowak.dev" src="https://plausible.io/js/script.js"></script>
+  </head>
+  <body>
+    <header>  <p>
+    <a class="back" href="/">To the Home Page</a>
+  </p>
+  <h1>Solar inverter datalogger</h1>
+</header>
+    <main><section>
+    <p class="large">The alternative datalogger software for one of the commercially available solar inverters, based on reverse engineering of its Modbus communication protocol</p>
+    <p>Published on Jul 29, 2023</p>
+</section>
+<section>
+  <p class="buttons">
+    <a class="button" href="https://github.com/mateusznowakdev/solar" target="_blank" rel="noopener">
+      Code on GitHub
+    </a>
+  </p>
+</section><section class="feature">
+  <div>
+    <h2>Live parameters</h2>
+    <p class="large">Get the current device state on a mobile or desktop device. Pin important entries to the top</p>
+    <p>Powered by MQTT and WebSocket technologies. Compatible with MQTT clients, such as CircuitPython's MiniMQTT. No accounts required</p>
+  </div>
+  <div>
+    <a href="live-parameters.webp">
+      <img
+        alt="Live parameters"
+        loading="lazy"
+        src="live-parameters-w360.webp"
+        srcset="live-parameters-w360.webp, live-parameters-w720.webp 2x"
+      />
+    </a>
+  </div>
+</section>
+<section class="feature">
+  <div>
+    <h2>Chart view</h2>
+    <p class="large">Choose up to two numeric parameters to be displayed on the same screen for any date range</p>
+    <p>Historical data is aggregated with ETL queries and stored in multiple tables to achieve better performance with microSD cards</p>
+  </div>
+  <div>
+    <a href="chart-view.webp">
+      <img
+        alt="Chart view"
+        loading="lazy"
+        src="chart-view-w360.webp"
+        srcset="chart-view-w360.webp, chart-view-w720.webp 2x"
+      />
+    </a>
+  </div>
+</section>
+<section class="feature">
+  <div>
+    <h2>Basic automation</h2>
+    <p class="large">Extend the solar inverter's features with battery output and charge management</p>
+    <p>Output and charging modes are controlled automatically based on weather conditions. The automation can be disabled on demand</p>
+  </div>
+  <div>
+    <a href="basic-automation.webp">
+      <img
+        alt="Basic automation"
+        loading="lazy"
+        src="basic-automation-w360.webp"
+        srcset="basic-automation-w360.webp, basic-automation-w720.webp 2x"
+      />
+    </a>
+  </div>
+</section>
+<section class="feature">
+  <div>
+    <h2>Activity history</h2>
+    <p class="large">Find out what has happened in the past</p>
+    <p>Battery mode automation, changed settings, inverter errors and communication issues are all stored in the log</p>
+  </div>
+  <div>
+    <a href="activity-history.webp">
+      <img
+        alt="Activity history"
+        loading="lazy"
+        src="activity-history-w360.webp"
+        srcset="activity-history-w360.webp, activity-history-w720.webp 2x"
+      />
+    </a>
+  </div>
+</section>
+<section>
+  <h2>Solution stack</h2>
+  <ul class="tags">
+    <li>Django REST</li>
+    <li>PostgreSQL</li>
+    <li>React</li>
+    <li>Mosquitto MQTT</li>
+    <li>NGINX</li>
+    <li>Docker</li>
+  </ul>
+</section>  <section><h2>Technical details</h2>
+<p>The application is hosted on the lowest-end ARM64 Raspberry Pi I could buy at
+the moment (July 2023), the Model 3A+ with 512MB of RAM. It seems to be enough
+for a dockerized web application. The SD card is the biggest bottleneck, so an
+effort has been made to reduce writes and reads as much as possible. I have set
+up the ZRAM because the CPU is idle most of the time. The <code>swappiness</code> parameter
+is lowered as well. Logging was <strong>not</strong> disabled, in fact, I have configured
+containers to use <code>journald</code> logging driver and preserve logs between restarts.</p>
+<h3>Software internals</h3>
+<p>The entire deployment consists of the API service, the frontend service, two
+workers, the MQTT broker and the PostgreSQL database. Python and JavaScript
+dependencies and Docker images have fixed versions specified, with security
+issues automatically reported to me by GitHub. Prebuilt images are not
+available; the entire application is built on the target device, using
+multi-stage builds whenever possible.</p>
+<p>The frontend service uses carefully chosen import statements to greatly reduce
+tree-shaking time (from about an hour down to just a minute). Generated output
+files are compressed and then hosted by nginx, with no further server-side
+operations required.</p>
+<p>There are two worker processes: <em>communicator</em> and <em>transformer</em>. The
+communicator is responsible for retrieving data from the inverter,
+post-processing, saving to the database, and sending to the MQTT broker. It can
+change inverter settings as well. The transformer will periodically aggregate
+raw data, store it in one of four tables (each tier has a different precision
+and retention period), and remove old entries. These operations are performed
+using raw SQL queries, with the help of PostgreSQL features such as date binning
+and statistical mode.</p>
+<h3>User experience</h3>
+<p>Collected information can be accessed using a MQTT client (live parameters, in
+read-only mode) or the mobile-friendly web interface. There are five screens:
+live parameters (backed by MQTT over WebSocket), charts, energy production and
+consumption, log entries and automation settings.</p>
+<p>I've designed custom Bootstrap components to improve navigation. Favorite
+parameters are saved in the browser's local storage. Log entries can be filtered
+by their source: inverter errors, automations, and so on.</p>
+<p>Charts are the most complex component of the web interface. Users can retrieve
+data for two numeric parameters at once. I've used native date/time pickers and
+added range presets for the convenience. API service is responsible for choosing
+a tiered table that offers the best precision, and for reducing the number of
+data points if necessary.</p>
+<h3>Operating system choices</h3>
+<p>Back in July 2023, Raspberry Pi OS based on Debian 12 was not available yet, so
+I've decided to install <em>real</em> Debian with a mainline kernel in UEFI mode,
+following the instructions from the
+<a href="https://pete.akeo.ie/2019/07/installing-debian-arm64-on-raspberry-pi.html" rel="noopener" target="_blank">Pete Batard's blog</a>
+(Rufus author). For compatibility reasons, this solution uses a FAT16 EFI
+partition instead of the more common FAT32, and it made the installation process
+quite annoying. I had to open <code>fdisk</code> multiple times to change the partition's
+signature.</p>
+<p>In the following months, there were no stability issues, even after multiple
+power outages. Basic features like Wi-Fi communication and power management
+seemed to be fully supported. I've run into some issues I couldn't resolve,
+though. Without an I2C or SPI support, you can't really add battery backup
+because it's impossible to read its parameters. The <code>gpu_mem</code> setting was
+ignored, so about 64MB of RAM went unused.</p>
+<p>I've switched to the official operating system during monthly maintenance in
+early 2024. Raspberry Pi Imager was used to prepare an SD card, customize
+hostname and login credentials, and enable SSH – no peripherals were
+required. The database is stored in the <code>/var/lib/solar</code> directory, so it could
+be compressed and copied over SSH easily. I've installed Docker, enabled
+firewall (including SSH and HTTPS ports), started the Compose-based application
+for the first time, and that was it.</p>
+</section>
+<section>
+  <p class="large">Check out the following links:</p>
+  <ul class="gallery gallery-short">
+  <li>
+    <h3>
+      <a href="/articles/adjusting-focus-gemius-qcam-6000/" rel="" target="">
+        Adjusting focus of Gemius QCam 6000
+      </a>
+    </h3>
+    <p>A simple trick to fix blurry camera and improve Slack and Teams calls and local video recording.</p>
+    <a href="/articles/adjusting-focus-gemius-qcam-6000/" rel="" target="">
+      <img alt="Adjusting focus of Gemius QCam 6000" loading="lazy" src="/images/article-adjusting-focus-gemius-qcam-6000.webp" />
+    </a>
+  </li>
+  <li>
+    <h3>
+      <a href="/articles/creating-static-site-generator/" rel="" target="">
+        Creating static site generator
+      </a>
+    </h3>
+    <p>Rich content, native external links, optimized images, sitemap and Atom feed, with 300 lines of Python code.</p>
+    <a href="/articles/creating-static-site-generator/" rel="" target="">
+      <img alt="Creating static site generator" loading="lazy" src="/images/article-creating-static-site-generator.webp" />
+    </a>
+  </li>
+  <li>
+    <h3>
+      <a href="/articles/manufacturing-pcb-at-home/" rel="" target="">
+        Manufacturing PCBs at home
+      </a>
+    </h3>
+    <p>Tips on setting board parameters in KiCAD, milling and drilling PCBs, and things that you should avoid.</p>
+    <a href="/articles/manufacturing-pcb-at-home/" rel="" target="">
+      <img alt="Manufacturing PCBs at home" loading="lazy" src="/images/article-manufacturing-pcb-at-home.webp" />
+    </a>
+  </li>
+  <li>
+    <h3>
+      <a href="/projects/automatic-door-controller/" rel="" target="">
+        Automatic door controller
+      </a>
+    </h3>
+    <p>Day and night schedules, advanced logging and user-friendly menus. Custom PCB with modular design. Running on CircuitPython.</p>
+    <a href="/projects/automatic-door-controller/" rel="" target="">
+      <img alt="Automatic door controller" loading="lazy" src="/images/project-automatic-door-controller.webp" />
+    </a>
+  </li>
+  </ul>
+</section></main>
+    <footer>  <p>
+    <a class="back" href="/">To the Home Page</a>
+  </p>
+<p>
+  &copy; 0x7E8 Mateusz Nowak. Copying not allowed.<br />
+  Featuring the
+  <a href="https://etceteratype.co/epilogue" target="_blank" rel="noopener">Epilogue font</a>
+  and
+  <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide icons</a>.
+</p>
+<a href="#" title="Scroll to the top">
+  <img class="up" alt="Scroll to the top" src="/images/up.webp" />
+</a></footer>
+  </body>
+</html>

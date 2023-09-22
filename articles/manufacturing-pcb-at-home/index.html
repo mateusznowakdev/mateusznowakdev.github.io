@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/index.css" type="text/css" />
+    <link rel="alternate" href="/atom.xml" type="application/atom+xml" />
+      <meta name="description" content="Tips on setting board parameters in KiCAD, milling and drilling PCBs, and things that you should avoid." />
+      <link rel="canonical" href="https://mateusznowak.dev/articles/manufacturing-pcb-at-home/" />
+    <title>Manufacturing PCBs at home &mdash; Mateusz Nowak's personal website</title>
+    <script defer data-domain="mateusznowak.dev" src="https://plausible.io/js/script.js"></script>
+  </head>
+  <body>
+    <header>  <p>
+    <a class="back" href="/">To the Home Page</a>
+  </p>
+  <h1>Manufacturing PCBs at home</h1>
+</header>
+    <main><section>
+    <p class="large">I have bought a CNC router to iterate on electronic designs even faster. Here's what hardware and software I use, and how to mill, drill and cut the board at home</p>
+    <p>Published on Feb 4, 2024</p>
+</section>
+  <section><h2>A word on PCB fabs</h2>
+<p>This is a viable solution, but only if you are 100% sure your design is what you
+want. You get all the basic features, such as a soldermask, silkscreen, plated
+vias and multiple layers. The price is so low that there is no risk of taxes
+related to the value of the package. PCB fabs can also offer extra services,
+such as an extended validity check or board assembly.</p>
+<p>However, milling at home is better if you can't wait more than a week for
+delivery of the board, but at the same time, you are unable to test the circuit
+on the breadboard. Shipping options from China are limited (no delivery to
+parcel lockers), and usually you have to order at least 5 boards you may find no
+purpose for.</p>
+<h2>My workflow</h2>
+<p>I was looking for a simple, portable CNC device with basic safety features such
+as a height probe (Z probe) and limit switches. I have found a used
+<a href="https://www.sainsmart.com/products/genmitsu-3018-prover-v2-upgraded-semi-assembled-cnc-router-kit" rel="noopener" target="_blank">SainSmart 3018-PROVer V2</a>
+online. The router had a scratched spoilboard and the package was incomplete
+(missing a single clamp and the entire set of V-bits). But hey, the entire thing
+was inexpensive, and it works fine so far, despite some skill issues on my end.</p>
+<p>The downside of the device is the noise it emits. If you set the spindle speed
+to more than 1000 RPM, the vibrations become so annoying that you have to
+do some soundproofing – I've made a simple enclosure out of a sheet of OSB
+and some drywall. I'm also slightly disappointed with the Z axis precision. The
+Y axis guiderails and the spindle mount do bend a little, and all inaccuracies
+add up.</p>
+<p></p><figure><a href="cnc-overview.webp"><img src="cnc-overview-w1024.webp" alt="CNC overview" srcset="cnc-overview-w1024.webp, cnc-overview.webp 2x" loading="lazy" /></a></figure><p></p>
+<p>KiCAD is my PCB design software of choice. It's open source, and it works on
+Linux<sup>[1]</sup> (available on Flathub). It might be annoying to use, but it's better
+than paying for <del>EAGLE</del> Fusion 360 or trying to work around the limitations of
+its non-commercial version. It's easy to create new symbols and footprints, but
+usually you'll find them in the built-in library or online. There are 3D models
+for select components as well. Finally, you can run batch tasks using the Python
+scripting console.</p>
+<p>People often recommend FlatCAM to postprocess Gerber/Excellon files, and Candle
+to control the router. These are, in my honest opinion, the worst choices.
+FlatCAM has an overcomplicated user interface that is changed on every single
+release, so all video tutorials become useless in no time. Parameter options
+conflict with each other, and there are no basic optimization features such as
+milling path reduction or a reasonable drilling order. Candle's UI does not fit
+on a smaller screen, auto-leveling seems not to work properly, and you can't run
+this app on modern Linux distros even in Xorg mode. I've used a Windows virtual
+machine to work around these issues, but eventually, I switched to
+<a href="https://github.com/pcb2gcode/pcb2gcode" rel="noopener" target="_blank">pcb2gcode</a> and
+<a href="https://github.com/winder/Universal-G-Code-Sender" rel="noopener" target="_blank">Universal Gcode Sender (UGS)</a>.</p>
+<p><sup>[1]</sup> It works, but there are huge performance issues on Wayland if there is at
+least one maximized KiCAD window. You need to open the <code>dconf-editor</code>, set
+<code>org.gnome.mutter.auto-maximize</code> to <code>false</code>, and then manually resize KiCAD
+windows to the maximum possible size.</p>
+<h2>KiCAD PCB parameters</h2>
+<p>Initially, I wasn't using fine V-bits because I was afraid that they would break
+or wear down easily, but I was wrong.</p>
+<p>I prefer to mill PCBs with a 0.2 mm 45° V-bit (which is effectively
+0.4 mm for the Z depth of 0.3 mm), cut the outline with a 1.5 mm
+bit, and drill holes with a 1 mm drill. Some electric components, such as
+high-current block terminals, may require a slightly larger drill.</p>
+<p>You should set up board parameters in the <code>File &gt; Board Setup &gt; Design Rules</code>
+menu right after you create a new KiCAD project. These values work for me, but I
+haven't tried using any SOIC or QFP components in my designs yet.</p>
+<ul>
+<li>Constraints<ul>
+<li>Minimum clearance: 0.5 mm</li>
+<li>Minimum track width: 0.5 mm</li>
+</ul>
+</li>
+<li>Net Classes<ul>
+<li>&quot;Default&quot;<ul>
+<li>Clearance: 0.5 mm</li>
+<li>Track width: 0.77 mm</li>
+</ul>
+</li>
+<li>&quot;Large&quot; (add new)<ul>
+<li>Clearance: 0.5 mm</li>
+<li>Track width: 2.04 mm</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p></p><figure><a href="kicad-design-rules.webp"><img src="kicad-design-rules-w1024.webp" alt="KiCAD Design rules" srcset="kicad-design-rules-w1024.webp, kicad-design-rules.webp 2x" loading="lazy" /></a></figure><p></p>
+<p>Observe that 0.77 + 0.5 = 1.27 and 2.04 + 0.5 = 2.54. Common pin headers have
+0.1 inch (2.54 mm) spacing. The values I've picked make routing
+easier, but having parallel routes close to each other may be a bad idea for an
+analog signal.</p>
+<p>It's a good practice to set an unused area as a ground zone. It's quite
+difficult in this case because there is only one layer, the bottom one. However,
+you can draw on the top layer to pass the DRC (design rules check), then add
+jumper wires where it is necessary. Make sure removing islands (unconnected
+ground planes) is disabled.</p>
+<p></p><figure><a href="kicad-copper-zone-properties.webp"><img src="kicad-copper-zone-properties-w1024.webp" alt="KiCAD Copper zone properties" srcset="kicad-copper-zone-properties-w1024.webp, kicad-copper-zone-properties.webp 2x" loading="lazy" /></a></figure><p></p>
+<p>Finally, it may be useful to enlarge pads to make the soldering easier. It is
+possible to change their size and shape. The maximum valid area is 2.04 mm
+× 2.04 mm (based on the design rules), but rectangular pads are
+difficult to work with due to the lack of a soldermask. I would recommend having
+these oval or circular.</p>
+<p>Both changes can be performed manually, but you can use the scripting console
+(KiPython) as well. This is an experimental feature, so remember to save your
+changes before running any code, or you may lose progress when KiCAD crashes.
+Open the console, copy the following code, and paste it with Ctrl+Shift+V.</p>
+<p><strong>This code was tested with KiCAD 7.0.8.</strong></p>
+<pre><code class="language-python">import pcbnew
+
+board = pcbnew.GetBoard()
+
+for p in board.GetPads():
+    if p.GetNetname():  # pads without name are just holes
+        p.SetSize(pcbnew.VECTOR2I(2040000, 2040000))  # nanometers
+        p.SetDrillSize(pcbnew.VECTOR2I(1000000, 1000000))
+        p.SetShape(2)  # OVAL
+
+pcbnew.Refresh()
+</code></pre>
+<h2>KiCAD export</h2>
+<p>The default (0, 0) point is in the top-left corner of the PCB drawing sheet. It
+has to be moved to the top-left corner of the actual PCB, or you will run into
+issues after you send the job to the router. Select the <code>Place origin point</code> and
+<code>Set the grid origin point</code> (long press) options from the toolbar, and use them
+to match the result shown in the picture below.</p>
+<p></p><figure><a href="kicad-origin-points.webp"><img src="kicad-origin-points-w1024.webp" alt="KiCAD Origin points" srcset="kicad-origin-points-w1024.webp, kicad-origin-points.webp 2x" loading="lazy" /></a></figure><p></p>
+<p>Gerber files (for milling and cutting) and Excellon files (for drilling) can be
+exported from the <code>File &gt; Plot</code> menu. Make sure the option to respect custom
+drill/place origins is enabled and that both PTH and NPTH holes are exported to
+a single file. If you have oval mounting holes in your PCB design, select
+alternate drill mode, otherwise such holes will be ignored when generating
+G-code.</p>
+<h2>Postprocessing</h2>
+<p>I've already mentioned that <code>pcb2gcode</code> is the software I use to further process
+the KiCAD's output. You can update G-code files with just a single command once
+you adjust the parameters to match your router's capabilities.</p>
+<p>First, the program itself needs to be compiled from source. I'm using the Docker
+container to install the dependencies, based on the following <code>Dockerfile</code>.
+There is an extra user with UID 1000 created to avoid the permission issues.
+Furthermore, I remove the output SVG files as soon as they are generated (I
+couldn't find the option to disable this behavior).</p>
+<pre><code class="language-dockerfile">FROM debian:11
+
+RUN apt-get update \
+    &amp;&amp; apt-get install build-essential automake autoconf autoconf-archive libtool libboost-program-options-dev libgtkmm-2.4-dev gerbv git librsvg2-dev -y
+
+RUN git clone https://github.com/pcb2gcode/pcb2gcode.git \
+    &amp;&amp; cd pcb2gcode \
+    &amp;&amp; git checkout v2.5.0 \
+    &amp;&amp; autoreconf -fvi \
+    &amp;&amp; ./configure \
+    &amp;&amp; make \
+    &amp;&amp; make install
+
+RUN useradd -u 1000 user
+USER user
+
+WORKDIR /output
+ENTRYPOINT bash -c &quot;pcb2gcode &amp;&amp; rm *.svg&quot;
+</code></pre>
+<p>Recent versions of Docker have the Compose plugin built in. Create a
+<code>compose.yml</code> file and paste this YAML there:</p>
+<pre><code class="language-yml">services:
+  main:
+    build: .
+    image: pcb2gcode:2.5.0
+    volumes:
+      - ./project/output:/output
+</code></pre>
+<p>Now you can run the <code>pcb2gcode</code> with <code>docker compose up</code>.</p>
+<p>However, it won't do anything useful without the <code>millproject</code> configuration
+file. There are some non-standard settings enabled, such as disabling
+unsupported commands (<code>nog64</code>, <code>nog81</code>, <code>nom6</code>), removing empty areas
+(<code>voronoi</code>), and adding supports when cutting the outline (<code>bridges</code>). I've
+tried to make the entire manufacturing process as non-disruptive as possible.
+Consult the program's documentation for more information and suggestions.</p>
+<pre><code class="language-ini"># general
+
+metric = true
+metricoutput = true
+nog64 = true
+nom6 = true
+zchange = 2.0mm
+zsafe = 2.0mm
+
+back = XXXXX-B_Cu.gbr
+back-output = XXXXX-B_Cu.gbr.ngc
+drill = XXXXX.drl
+drill-output = XXXXX.drl.ngc
+outline = XXXXX-Edge_Cuts.gbr
+outline-output = XXXXX-Edge_Cuts.gbr.ngc
+
+# milling
+
+mill-diameters = 0.4mm
+mill-feed = 200mm/min
+mill-infeed = 0.15mm
+mill-speed = 1500rpm
+voronoi = true
+zwork = -0.3mm
+
+# drilling
+
+drill-feed = 50mm/min
+drill-side = back
+drill-speed = 1500rpm
+drills-available = 1.0mm
+nog81 = true
+zdrill = -2.0mm
+
+# cutting
+
+cut-feed = 100mm/min
+cut-infeed = 0.15mm
+cut-side = back
+cut-speed = 1500rpm
+cutter-diameter = 1.5mm
+zcut = -1.6mm
+bridges = 2.0mm
+bridgesnum = 4
+zbridges = -0.5mm
+</code></pre>
+<p>You can inspect .ngc files using G-code utilities that run in your browser.
+<a href="https://ncviewer.com/" rel="noopener" target="_blank">NCViewer</a> can simulate the spindle movement for the
+entire job and show the progress being made. Another
+<a href="https://nraynaud.github.io/webgcode/" rel="noopener" target="_blank">G-code simulator</a> can be used to get the
+approximate job time.</p>
+<p></p><figure><a href="ncviewer.webp"><img src="ncviewer-w1024.webp" alt="NCViewer simulation in progress" srcset="ncviewer-w1024.webp, ncviewer.webp 2x" loading="lazy" /></a></figure><p></p>
+<h2>Milling the PCB</h2>
+<p><strong>WARNING: I take no responsibility for any damage to your health or property.</strong></p>
+<p>It's time to finally turn the copper-clad laminate into a useful circuit board.
+Secure it onto the spoilboard and make sure that the spindle would be able to
+move freely in the Z axis. Use double-sided tape for larger or thinner boards if
+necessary. Insert the milling bit and then attach the Z probe (you may have to
+modify it and add the second alligator clip).</p>
+<p>Open the Universal Gcode Sender (UGS), connect to the router, and move the
+spindle to the top-right corner of the usable area. Lower the spindle until the
+probe's LED turns red. Click <code>Reset Zero</code> and then <code>Return to Zero</code> to make sure
+the router is calibrated.</p>
+<p></p><figure><a href="ugs-autoleveler.webp"><img src="ugs-autoleveler-w1024.webp" alt="UGS Autoleveler" srcset="ugs-autoleveler-w1024.webp, ugs-autoleveler.webp 2x" loading="lazy" /></a></figure><p></p>
+<p><strong>Auto-leveling</strong>: Load the bottom layer file and open the AutoLeveler plugin
+(<code>Window &gt; Plugins &gt; AutoLeveler</code>). Click <code>Use loaded file</code> to resize the height
+map. Change the Z axis range to -2 mm to 2 mm. The resolution of about
+10 mm should be fine. Start the AutoLeveler and wait for the scanning to be
+completed. Save the height map for later, it will be useful if UGS crashes.
+Disconnect the height probe and click <code>Return to Zero</code>. <strong>Do not run
+AutoLeveler</strong> again once you have milled the board, it will not work because
+copper areas are not connected anymore.</p>
+<p><strong>Milling</strong>: Make sure bottom layer file is loaded and the AutoLeveler's
+<code>Apply to Gcode</code> option is checked. Click <code>Send</code> (the &quot;play&quot; button). The
+spindle will move up a little. Click <code>Send</code> again to actually start the milling.
+<code>Return to Zero</code> once the job is done. Inspect the board; it may be necessary to
+run the process again if some tracks look incomplete.</p>
+<p><strong>Cutting</strong>: Press the emergency button, raise the spindle, insert a new bit,
+lower the spindle to make it barely touch the board, then release (rotate) the
+button. Open the outline file and repeat the steps above.</p>
+<p><strong>Drilling</strong>: Repeat the steps above.</p>
+<p></p><figure><a href="cnc-before-milling.webp"><img src="cnc-before-milling-w1024.webp" alt="Base material before CNC milling" srcset="cnc-before-milling-w1024.webp, cnc-before-milling.webp 2x" loading="lazy" /></a></figure><p></p>
+<p></p><figure><a href="cnc-milling.webp"><img src="cnc-milling-w1024.webp" alt="CNC milling" srcset="cnc-milling-w1024.webp, cnc-milling.webp 2x" loading="lazy" /></a></figure><p></p>
+<p>At last, detach the PCB from the spoilboard. Use some coarse sandpaper to finish
+the edges of the PCB if necessary, expand the mounting holes using a power
+drill, and install all electronic components according to the schematic. Use
+extra flux to make soldering easier.</p>
+<p></p><figure><a href="cnc-finished.webp"><img src="cnc-finished-w1024.webp" alt="Finished and cleaned board" srcset="cnc-finished-w1024.webp, cnc-finished.webp 2x" loading="lazy" /></a></figure><p></p>
+<h2>Soldermask</h2>
+<p>There are two methods of applying a UV-curable soldermask to the PCB. First, you
+can add a few drops of such resin onto the finished board, use a thin film and a
+sharpie pen to mask solder points, expose the resin, and then remove the
+remaining resin with isopropyl alcohol. This may be the more annoying option
+because you have to guess how long the board has to be exposed, and the uncured
+soldermask will get stuck in drilled holes.</p>
+<p>Another approach is to drip some resin onto the board right after milling, then
+remove it mechanically. This option has some disadvantages when paired with my
+CNC router. The copper layer is really thin, and you will either damage PCB
+traces or skip some solder points. A 10×10 cm board is far too large. It
+may work fine for smaller PCBs, though.</p>
+<p>I think that it's not worth it. I've spent some time and money, and it didn't
+work well. If you really need a soldermask, then make a prototype, test it, and
+then order PCBs online. Remember that a soldermask is not an insulation layer,
+and it is only used to make soldering easier and to protect the board from
+oxidation.</p>
+<h2>Random tips and tricks</h2>
+<p>Start with some smaller designs if this is your first time milling PCBs. Make
+sure to understand basic concepts, such as homing the device. If you consider
+yourself more experienced, remember that mistakes may happen anyway.</p>
+<p>Be aware that your CNC router is a relatively cheap device, and it may be
+counterintuitive in use. Try out various feed rates and spindle speeds and find
+the best values for reduced noise and vibrations and prolonged device life. My
+CNC router's spindle can reach crazy fast speeds, but in practice, 1500 RPM
+is good enough.</p>
+<p>Try out different base materials and know the difference between them. FR4 and
+CEM3 are the most popular ones, and they can be used to make rigid PCBs, but you
+can't cut them easily. I prefer the phenolic paper laminate, which I believe is
+also known as FR1/FR2. Its structure is softer, similar to the common perfboard,
+and the boards I buy seem to have a thin protective layer.</p>
+<p>Learn the basics of G-code. It's possible to move the spindle manually with a
+knob, but the router will not know about this change. If you run G-code
+commands, then the internal device state is updated, and UGS actions such as
+<code>Return to Zero</code> can work properly. You should know how <code>G0</code>, <code>G90/G91</code> and
+<code>M3/M4/M5</code> can be used, and how to modify <code>.ngc</code> files to skip commands. I have
+found <a href="https://marlinfw.org/meta/gcode/" rel="noopener" target="_blank">good G-code documentation</a> online to
+help you get started.</p>
+</section>
+<section>
+  <p class="large">Check out the following links:</p>
+  <ul class="gallery gallery-short">
+  <li>
+    <h3>
+      <a href="/articles/adjusting-focus-gemius-qcam-6000/" rel="" target="">
+        Adjusting focus of Gemius QCam 6000
+      </a>
+    </h3>
+    <p>A simple trick to fix blurry camera and improve Slack and Teams calls and local video recording.</p>
+    <a href="/articles/adjusting-focus-gemius-qcam-6000/" rel="" target="">
+      <img alt="Adjusting focus of Gemius QCam 6000" loading="lazy" src="/images/article-adjusting-focus-gemius-qcam-6000.webp" />
+    </a>
+  </li>
+  <li>
+    <h3>
+      <a href="/articles/creating-static-site-generator/" rel="" target="">
+        Creating static site generator
+      </a>
+    </h3>
+    <p>Rich content, native external links, optimized images, sitemap and Atom feed, with 300 lines of Python code.</p>
+    <a href="/articles/creating-static-site-generator/" rel="" target="">
+      <img alt="Creating static site generator" loading="lazy" src="/images/article-creating-static-site-generator.webp" />
+    </a>
+  </li>
+  <li>
+    <h3>
+      <a href="/projects/automatic-door-controller/" rel="" target="">
+        Automatic door controller
+      </a>
+    </h3>
+    <p>Day and night schedules, advanced logging and user-friendly menus. Custom PCB with modular design. Running on CircuitPython.</p>
+    <a href="/projects/automatic-door-controller/" rel="" target="">
+      <img alt="Automatic door controller" loading="lazy" src="/images/project-automatic-door-controller.webp" />
+    </a>
+  </li>
+  </ul>
+</section></main>
+    <footer>  <p>
+    <a class="back" href="/">To the Home Page</a>
+  </p>
+<p>
+  &copy; 0x7E8 Mateusz Nowak. Copying not allowed.<br />
+  Featuring the
+  <a href="https://etceteratype.co/epilogue" target="_blank" rel="noopener">Epilogue font</a>
+  and
+  <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide icons</a>.
+</p>
+<a href="#" title="Scroll to the top">
+  <img class="up" alt="Scroll to the top" src="/images/up.webp" />
+</a></footer>
+  </body>
+</html>

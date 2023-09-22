@@ -1,0 +1,262 @@
+@charset "utf-8";
+
+:root {
+  --fg-primary: #003333;
+  --fg-secondary: #779988;
+  --bg-primary: #f6ffed;
+  --bg-secondary: #e4f2dd;
+  --bg-tertiary: #d6ebcb;
+}
+
+@font-face {
+  font-family: "Epilogue";
+  font-style: normal;
+  font-display: swap;
+  src: url("fonts/Epilogue.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Epilogue";
+  font-style: italic;
+  font-display: swap;
+  src: url("fonts/Epilogue-Italic.woff2") format("woff2");
+}
+
+html {
+  font-size: 18px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--fg-primary);
+  font-family: "Epilogue", sans-serif;
+  font-weight: 400;
+  line-height: 2;
+  margin: 0 auto;
+  max-width: 60rem;
+}
+
+header,
+main,
+footer {
+  padding: 1rem;
+}
+
+a {
+  color: var(--fg-primary);
+}
+
+code {
+  background-color: var(--bg-secondary);
+  font-family: "Epilogue", sans-serif;
+  padding: 0.25rem 0;
+}
+
+figure {
+  border: 1px solid var(--bg-secondary);
+  line-height: 0;
+  margin: 1.5rem 0;
+  padding: 1rem;
+}
+
+figure img {
+  max-width: 100%;
+}
+
+footer {
+  font-size: 0.9rem;
+  margin-right: 4.5rem;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 1.39rem + 4.5vw, 4rem);
+  line-height: 1.5;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 1.05rem + 2.5vw, 2.5rem);
+  line-height: 1.5;
+}
+
+pre {
+  background-color: var(--bg-secondary);
+  line-height: 1.5;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+pre code {
+  display: inline-block;
+  padding: 0 1rem 0 0;
+}
+
+section {
+  padding-bottom: 1rem;
+}
+
+ul {
+  list-style-type: disc;
+}
+
+video {
+  background-color: var(--bg-secondary);
+  border-radius: 1rem;
+  min-height: 12rem;
+  width: 100%;
+}
+
+h1,
+h2,
+h3,
+strong {
+  /* fix for Epiphany */
+  font-weight: 599;
+}
+
+::selection {
+  background-color: var(--fg-primary);
+  color: var(--bg-primary);
+}
+
+.back::before {
+  content: "← ";
+}
+
+.button {
+  background-color: var(--bg-secondary);
+  border-radius: 1rem;
+  font-size: clamp(1rem, 0.775rem + 1.25vw, 1.5rem);
+  padding: 0.5rem 2rem 0.25rem 2rem;
+  text-decoration: none;
+  width: 100%;
+}
+
+.button::after {
+  content: " →";
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 2rem;
+}
+
+.feature {
+  padding: 1.5rem 0;
+}
+
+.feature img {
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--bg-secondary);
+  border-radius: 1rem;
+  max-width: 20rem;
+  object-fit: cover;
+  width: 100%;
+}
+
+.gallery {
+  display: grid;
+  gap: 1.75rem;
+  grid-template-columns: repeat(1, 1fr);
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.gallery li {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery li h3 {
+  margin-bottom: 0;
+}
+
+.gallery li img {
+  aspect-ratio: 6 / 3;
+  border: 2px solid var(--bg-tertiary);
+  border-radius: 1rem;
+  object-fit: cover;
+  width: 100%;
+}
+
+.gallery li a {
+  order: -1;
+}
+
+.gallery-short li:nth-child(n + 2) {
+  display: none;
+}
+
+.large {
+  font-size: clamp(1.1rem, 0.96rem + 0.75vw, 1.4rem);
+  font-weight: 500;
+}
+
+.muted {
+  color: var(--fg-secondary);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.tags li {
+  border: 1px solid var(--fg-secondary);
+  border-radius: 1rem;
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+}
+
+.up {
+  border: 1px solid var(--bg-secondary);
+  border-radius: 1rem;
+  bottom: 2.5rem;
+  position: fixed;
+  right: 1rem;
+  width: 4rem;
+}
+
+@media (min-width: 480px) {
+  .gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gallery li img {
+    aspect-ratio: 5 / 3;
+  }
+
+  .gallery-short li:nth-child(-n + 2) {
+    display: flex;
+  }
+}
+
+@media (min-width: 768px) {
+  .feature {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: auto 20rem;
+    align-items: center;
+  }
+
+  .feature h2 {
+    margin-top: 0;
+  }
+
+  .gallery {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .gallery li img {
+    aspect-ratio: 4 / 3;
+  }
+
+  .gallery-short li:nth-child(-n + 3) {
+    display: flex;
+  }
+}
