@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Solar inverter datalogger. Complex charts, data aggregation and basic automation. Optimized for low-end Raspberry Pi variants."
+    />
+    <link rel="stylesheet" href="/index.css" type="text/css" />
+    <title>Solar inverter datalogger &mdash; Mateusz Nowak</title>
+  </head>
+  <body>
+    <header>
+      <p><a class="back" href="/">To the Home Page</a></p>
+      <h1>Solar inverter datalogger</h1>
+    </header>
+    <main>
+      <section>
+        <p class="large">
+          The alternative datalogger software for one of the commercially
+          available solar inverters, based on reverse engineering of its Modbus
+          communication protocol.
+        </p>
+        <p>Published on July 29, 2023</p>
+      </section>
+      <section>
+        <p class="buttons">
+          <a
+            class="button"
+            href="https://github.com/mateusznowakdev/solar"
+            target="_blank"
+            rel="noreferrer"
+            >Code on GitHub</a
+          >
+        </p>
+      </section>
+      <section class="feature">
+        <div>
+          <h2>Live parameters</h2>
+          <p class="large">
+            Get the current device state on a&nbsp;mobile or desktop device. Pin
+            important entries to the top.
+          </p>
+          <p>
+            Powered by MQTT and WebSocket technologies. Compatible with MQTT
+            clients, such as CircuitPython's MiniMQTT. No accounts required.
+          </p>
+        </div>
+        <div>
+          <a href="live-parameters.webp">
+            <img
+              alt="Live parameters"
+              loading="lazy"
+              src="live-parameters-w360.webp"
+              srcset="live-parameters-w360.webp, live-parameters-w720.webp 2x"
+            />
+          </a>
+        </div>
+      </section>
+      <section class="feature">
+        <div>
+          <h2>Chart view</h2>
+          <p class="large">
+            Choose up to two numeric parameters to be displayed on the same
+            screen for any date range.
+          </p>
+          <p>
+            Historical data is aggregated with ETL queries and stored in
+            multiple tables to achieve better performance with microSD cards.
+          </p>
+        </div>
+        <div>
+          <a href="chart-view.webp">
+            <img
+              alt="Chart view"
+              loading="lazy"
+              src="chart-view-w360.webp"
+              srcset="chart-view-w360.webp, chart-view-w720.webp 2x"
+            />
+          </a>
+        </div>
+      </section>
+      <section class="feature">
+        <div>
+          <h2>Basic automation</h2>
+          <p class="large">
+            Extend the solar inverter's features with battery output and charge
+            management.
+          </p>
+          <p>
+            Output and charging modes are controlled automatically based on
+            weather conditions. The automation can be disabled on demand.
+          </p>
+        </div>
+        <div>
+          <a href="basic-automation.webp">
+            <img
+              alt="Basic automation"
+              loading="lazy"
+              src="basic-automation-w360.webp"
+              srcset="basic-automation-w360.webp, basic-automation-w720.webp 2x"
+            />
+          </a>
+        </div>
+      </section>
+      <section class="feature">
+        <div>
+          <h2>Activity history</h2>
+          <p class="large">Find out what has happened in the past.</p>
+          <p>
+            Battery mode automation, changed settings, inverter errors and
+            communication issues are all stored in the log.
+          </p>
+        </div>
+        <div>
+          <a href="activity-history.webp">
+            <img
+              alt="Activity history"
+              loading="lazy"
+              src="activity-history-w360.webp"
+              srcset="activity-history-w360.webp, activity-history-w720.webp 2x"
+            />
+          </a>
+        </div>
+      </section>
+      <section>
+        <p><strong>Other features and things to mention:</strong></p>
+        <ul>
+          <li>
+            Summary view &ndash; production and usage for the last 14 days and
+            the last 12&nbsp;months
+          </li>
+          <li>
+            Full Polish localization, with appropriate date and number formats,
+            including charts
+          </li>
+          <li>
+            Build improvements &ndash; reduced from about 1&nbsp;hour to barely
+            5&nbsp;minutes on target RPi
+          </li>
+        </ul>
+      </section>
+      <section>
+        <h2>Solution stack</h2>
+        <ul class="tags">
+          <li>Python</li>
+          <li>Django REST</li>
+          <li>PostgreSQL</li>
+          <li>Mosquitto MQTT</li>
+          <li>JavaScript</li>
+          <li>React</li>
+          <li>Chart.js</li>
+          <li>NGINX</li>
+          <li>Docker</li>
+          <li>Raspberry Pi</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Technical details</h2>
+        <p>
+          The application is hosted on the lowest-end ARM64 Raspberry Pi I could
+          buy at the moment (July 2023), the Pi&nbsp;3A+ with 512MB of RAM. It
+          seems to be enough for a&nbsp;dockerized web application &ndash; the
+          SD card is the biggest bottleneck here.
+        </p>
+        <p>
+          Raspberry Pi OS based on Debian&nbsp;12 was not available yet, so I've
+          decided to install <i>real</i> Debian in UEFI mode, following the
+          instructions from
+          <a
+            href="https://pete.akeo.ie/2019/07/installing-debian-arm64-on-raspberry-pi.html"
+            rel="noopener"
+            target="_blank"
+            >Pete Batard's blog</a
+          >
+          (Rufus author). It works fine, including kernel updates, Wi-Fi drivers
+          and power management.
+        </p>
+        <p>
+          To get the application up and running, I&nbsp;had to install the OS,
+          set up <code>network-manager</code> and <code>avahi-daemon</code> for
+          mDNS support, set up <code>ufw</code> firewall (no external access
+          yet), add an SSH key and disable password authentication, install
+          Docker, then finally clone and build the application.
+        </p>
+        <p>
+          Speaking of logs, I&nbsp;didn't know that logs aren't preserved
+          between container restarts by default. Now I&nbsp;know, and
+          I&nbsp;have enabled <code>journald</code> logging driver in the
+          Compose file. I've also added automatic container reload: on failure
+          and on OS reboot.
+        </p>
+      </section>
+      <section>
+        <p class="large">Check out my other projects:</p>
+        <ul class="gallery gallery-short">
+          <li>
+            <h3>
+              <a href="/projects/automatic-door-controller/">
+                Automatic door controller
+              </a>
+            </h3>
+            <p>
+              Day and night schedules, advanced logging and user-friendly menus.
+              Custom PCB with modular design.
+            </p>
+            <a href="/projects/automatic-door-controller/">
+              <img
+                alt="Automatic door controller"
+                loading="lazy"
+                src="/images/project-automatic-door-controller.webp"
+              />
+            </a>
+          </li>
+          <li>
+            <h3>
+              <a href="/charlcd-designer/">Character LCD designer</a>
+            </h3>
+            <p>
+              Customizable display sizes, extra characters and sharing with URL,
+              with no need for real hardware.
+            </p>
+            <a href="/charlcd-designer/">
+              <img
+                alt="Character LCD designer"
+                loading="lazy"
+                src="/images/project-charlcd-designer.webp"
+              />
+            </a>
+          </li>
+          <li>
+            <h3>
+              <a href="/keyboard-reducer/">Keyboard layout reducer</a>
+            </h3>
+            <p>
+              Multiple layers, off-grid placement and detection of missing keys.
+              Useful for smaller keyboards.
+            </p>
+            <a href="/keyboard-reducer/">
+              <img
+                alt="Keyboard layout reducer"
+                loading="lazy"
+                src="/images/project-keyboard-reducer.webp"
+              />
+            </a>
+          </li>
+        </ul>
+      </section>
+    </main>
+    <footer>
+      <p>
+        <a class="back" href="/">To the Home Page</a>
+      </p>
+      <p>
+        &copy; 0x7E8 Mateusz Nowak.<br />
+        Featuring the
+        <a
+          href="https://etceteratype.co/epilogue"
+          target="_blank"
+          rel="noreferrer"
+          >Epilogue font</a
+        >
+        and
+        <a href="https://lucide.dev" target="_blank" rel="noreferrer"
+          >Lucide icons</a
+        >.
+      </p>
+      <a href="#" title="Scroll to the top">
+        <img class="up" alt="Scroll to the top" src="/images/up.webp" />
+      </a>
+    </footer>
+  </body>
+</html>
